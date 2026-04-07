@@ -49,7 +49,11 @@ export async function ingestPdf(input: IngestInput): Promise<IngestResult> {
     const { pageCount, pages } = await parsePdf(input.fileBytes);
 
     // 3. Chunk.
-    const chunks = chunkPages(pages);
+    const chunks = chunkPages(pages, {
+      title: input.title,
+      product: input.product,
+      docType: input.docType,
+    });
     if (chunks.length === 0) {
       throw new Error("PDF produced 0 chunks (is it scanned / image-only?)");
     }

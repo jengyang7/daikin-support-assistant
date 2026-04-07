@@ -2,19 +2,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { MessageSquare, FileText, Plus, Snowflake } from "lucide-react";
+import { MessageSquare, FileText, Plus, Snowflake, Bug } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   createConversation,
   deleteConversation,
   listConversations,
 } from "@/lib/chat-history";
+import { getDebugMode, setDebugMode, useDebugMode } from "@/lib/debug-mode";
 import type { Conversation } from "@/types";
 
 export function Sidebar() {
   const pathname = usePathname();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const debugOn = useDebugMode();
 
   // Load + subscribe to history changes (custom event fired by chat page).
   useEffect(() => {
@@ -145,14 +147,36 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* Footer counts */}
+      {/* Footer: knowledge base labels + debug toggle */}
       <div className="border-t border-sidebar-border px-4 py-3 text-[10px] uppercase tracking-wider text-slate-500">
         Knowledge Base
         <div className="mt-1 flex gap-3 text-[11px] font-medium normal-case tracking-normal text-slate-300">
+          <span>Catalogue</span>
+          <span>Datasheet</span>
           <span>Manuals</span>
-          <span>Guides</span>
-          <span>Tech</span>
         </div>
+      </div>
+
+      {/* Developer debug toggle */}
+      <div className="border-t border-sidebar-border px-4 py-2.5">
+        <button
+          onClick={() => setDebugMode(!debugOn)}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] font-medium transition",
+            debugOn
+              ? "bg-amber-500/20 text-amber-300 hover:bg-amber-500/30"
+              : "text-slate-500 hover:bg-sidebar-hover hover:text-slate-300",
+          )}
+        >
+          <Bug className="h-3.5 w-3.5" />
+          Debug mode
+          <span
+            className={cn(
+              "ml-auto h-3.5 w-6 rounded-full transition-colors",
+              debugOn ? "bg-amber-400" : "bg-slate-600",
+            )}
+          />
+        </button>
       </div>
     </aside>
   );

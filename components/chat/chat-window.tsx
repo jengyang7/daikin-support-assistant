@@ -1,9 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Snowflake } from "lucide-react";
 import { ProductFilter } from "./product-filter";
 import { ChatInput } from "./chat-input";
 import { MessageBubble } from "./message-bubble";
+import { SourceDrawer } from "./source-drawer";
+import { SourceContext } from "./source-context";
 import {
   appendMessage,
   createConversation,
@@ -12,12 +14,19 @@ import {
   saveConversation,
   updateMessage,
 } from "@/lib/chat-history";
+import { useDocumentUrls } from "./use-document-urls";
 import type { ChatMessage, Citation, Conversation, Product } from "@/types";
 
 export function ChatWindow() {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [streaming, setStreaming] = useState(false);
+  const [openCitation, setOpenCitation] = useState<Citation | null>(null);
+  const [lastQuery, setLastQuery] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
+
+  // URL map for the drawer's "Open PDF" link.
+  const allCitations = conv?.messages.flatMap((m) => m.citations ?? []) ?? [];
+  const urlMap = useDocumentUrls(allCitations);
 
   // Load active conversation (or create one) on mount + when sidebar changes it.
   useEffect(() => {
@@ -55,8 +64,14 @@ export function ChatWindow() {
     window.dispatchEvent(new Event("reiri:history-changed"));
   }
 
+  const openSource = useCallback((citation: Citation) => {
+    setOpenCitation(citation);
+  }, []);
+
   async function handleSend(text: string) {
     if (!conv || streaming) return;
+
+    setLastQuery(text);
 
     const userMsg: ChatMessage = {
       id: cryptoRandomId(),
@@ -104,7 +119,6 @@ export function ChatWindow() {
       let buf = "";
       let answer = "";
       let citations: Citation[] = [];
-      let event = "message";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -123,7 +137,7 @@ export function ChatWindow() {
             else if (ln.startsWith("data: ")) dataLines.push(ln.slice(6));
           }
           const dataStr = dataLines.join("\n");
-          event = frameEvent;
+
           if (frameEvent === "message") {
             answer += dataStr;
             updateLast(answer, citations);
@@ -132,6 +146,21 @@ export function ChatWindow() {
               const parsed = JSON.parse(dataStr);
               citations = parsed.citations ?? [];
               updateLast(answer, citations);
+            } catch {}
+          } else if (frameEvent === "debug") {
+            try {
+              const debugPayload = JSON.parse(dataStr);
+              // Persist debug info on the assistant message.
+              updateMessage(conv.id, assistantMsg.id, { debug: debugPayload });
+              setConv((prev) => {
+                if (!prev) return prev;
+                const msgs = prev.messages.slice();
+                msgs[msgs.length - 1] = {
+                  ...msgs[msgs.length - 1],
+                  debug: debugPayload,
+                };
+                return { ...prev, messages: msgs };
+              });
             } catch {}
           } else if (frameEvent === "done") {
             // final flush already done
@@ -186,36 +215,47 @@ export function ChatWindow() {
   }
 
   const isEmpty = conv.messages.length === 0;
+  const drawerUrl = openCitation ? (urlMap.get(openCitation.document_id) ?? null) : null;
 
   return (
-    <div className="flex h-full flex-1 flex-col">
-      {/* Top bar */}
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-        <div className="flex items-center gap-3">
-          <div className="text-[15px] font-semibold text-slate-800">
-            Daikin Technical Support
+    <SourceContext.Provider value={openSource}>
+      <div className="flex h-full flex-1 flex-col">
+        {/* Top bar */}
+        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
+          <div className="flex items-center gap-3">
+            <div className="text-[15px] font-semibold text-slate-800">
+              Daikin Technical Support
+            </div>
+            <div className="flex items-center gap-1.5 text-[12px] text-emerald-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Online
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 text-[12px] text-emerald-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Online
-          </div>
-        </div>
-        <ProductFilter value={conv.productFilter} onChange={setProductFilter} />
-      </header>
+          <ProductFilter value={conv.productFilter} onChange={setProductFilter} />
+        </header>
 
-      {/* Messages */}
-      <div ref={scrollerRef} className="scroll-thin flex-1 overflow-y-auto px-6 py-6">
-        <div className="mx-auto max-w-4xl space-y-5">
-          {isEmpty && <EmptyState />}
-          {conv.messages.map((m) => (
-            <MessageBubble key={m.id} message={m} />
-          ))}
+        {/* Messages */}
+        <div ref={scrollerRef} className="scroll-thin flex-1 overflow-y-auto px-6 py-6">
+          <div className="mx-auto max-w-4xl space-y-5">
+            {isEmpty && <EmptyState />}
+            {conv.messages.map((m) => (
+              <MessageBubble key={m.id} message={m} />
+            ))}
+          </div>
         </div>
+
+        {/* Composer */}
+        <ChatInput onSubmit={handleSend} disabled={streaming} />
       </div>
 
-      {/* Composer */}
-      <ChatInput onSubmit={handleSend} disabled={streaming} />
-    </div>
+      {/* Source drawer — rendered outside the scrollable area */}
+      <SourceDrawer
+        citation={openCitation}
+        query={lastQuery}
+        url={drawerUrl}
+        onClose={() => setOpenCitation(null)}
+      />
+    </SourceContext.Provider>
   );
 }
 

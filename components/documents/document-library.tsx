@@ -13,10 +13,10 @@ import { UploadDialog } from "./upload-dialog";
 
 const DOC_TYPE_FILTERS: ("all" | DocType)[] = [
   "all",
-  "manual",
-  "guide",
-  "technical",
-  "reference",
+  "catalogue",
+  "datasheet",
+  "installation",
+  "user_manual",
 ];
 
 const PRODUCT_FILTERS: ("all" | Product)[] = [

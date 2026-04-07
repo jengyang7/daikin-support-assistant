@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "bulk-ingest": "tsx scripts/bulk-ingest.ts",
+    "bulk-ingest:dry": "tsx scripts/bulk-ingest.ts --dry-run",
+    "ingest:clean": "tsx scripts/clean-ingest.ts"
   },
   "dependencies": {
     "@google/genai": "^0.7.0",
@@ -31,6 +34,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
+    "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }
 }

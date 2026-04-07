@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Snowflake } from "lucide-react";
 import type { ChatMessage } from "@/types";
 import { SourceChip } from "./source-chip";
-import { useDocumentUrls } from "./use-document-urls";
+import { DebugPanel } from "./debug-panel";
 
 export function MessageBubble({ message }: { message: ChatMessage }) {
   if (message.role === "user") {
@@ -19,37 +19,35 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
 
   // Strip [^n] markers from the displayed text — we render them as chips below.
   const cleaned = message.content.replace(/\[\^(\d+)\]/g, "");
-  const urls = useDocumentUrls(message.citations ?? []);
 
   return (
     <div className="flex animate-fade-in items-start gap-2.5">
       <div className="mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-brand text-white">
         <Snowflake className="h-4 w-4" strokeWidth={2.5} />
       </div>
-      <div className="max-w-[75%] rounded-2xl rounded-tl-sm bg-bubble-assistant px-4 py-3 shadow-sm">
-        <div className="prose-chat">
-          {message.content.length === 0 ? (
-            <TypingDots />
-          ) : (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleaned}</ReactMarkdown>
+      <div className="max-w-[75%]">
+        <div className="rounded-2xl rounded-tl-sm bg-bubble-assistant px-4 py-3 shadow-sm">
+          <div className="prose-chat">
+            {message.content.length === 0 ? (
+              <TypingDots />
+            ) : (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{cleaned}</ReactMarkdown>
+            )}
+          </div>
+          {message.citations && message.citations.length > 0 && (
+            <div className="mt-3 border-t border-slate-100 pt-2.5">
+              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Sources
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {message.citations.map((c) => (
+                  <SourceChip key={c.index} citation={c} />
+                ))}
+              </div>
+            </div>
           )}
         </div>
-        {message.citations && message.citations.length > 0 && (
-          <div className="mt-3 border-t border-slate-100 pt-2.5">
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Sources
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {message.citations.map((c) => (
-                <SourceChip
-                  key={c.index}
-                  citation={c}
-                  url={urls.get(c.document_id) ?? null}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        <DebugPanel message={message} />
       </div>
     </div>
   );

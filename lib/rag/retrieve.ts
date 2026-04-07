@@ -11,20 +11,22 @@ export interface RetrieveOptions {
 }
 
 /**
- * Embed `query` and call the match_chunks RPC, returning the most similar
- * chunks (optionally filtered by product / doc_type).
+ * Embed `query` and call the match_chunks_hybrid RPC, returning the top chunks
+ * fused by Reciprocal Rank Fusion over vector cosine + BM25 keyword scores.
+ * Optionally filtered by product / doc_type.
  */
 export async function retrieve(opts: RetrieveOptions): Promise<RetrievedChunk[]> {
   const supa = getSupabaseAdmin();
   const queryEmbedding = await embedQuery(opts.query);
 
-  const { data, error } = await supa.rpc("match_chunks", {
+  const { data, error } = await supa.rpc("match_chunks_hybrid", {
+    query_text: opts.query,
     query_embedding: queryEmbedding as unknown as string,
     match_count: opts.matchCount ?? 6,
     filter_product: opts.product ?? null,
     filter_doc_type: opts.docType ?? null,
   });
 
-  if (error) throw new Error(`match_chunks failed: ${error.message}`);
+  if (error) throw new Error(`match_chunks_hybrid failed: ${error.message}`);
   return (data ?? []) as RetrievedChunk[];
 }

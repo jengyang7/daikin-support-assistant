@@ -2,7 +2,7 @@ import "server-only";
 import { GoogleGenAI } from "@google/genai";
 
 const EMBEDDING_MODEL = "gemini-embedding-001";
-const GENERATION_MODEL = "gemini-2.5-flash";
+const GENERATION_MODEL = "gemini-2.5-flash-lite";
 
 let cached: GoogleGenAI | null = null;
 

@@ -11,10 +11,10 @@ const VALID_PRODUCTS = new Set<Product>([
   "reiri_hotel",
 ]);
 const VALID_DOC_TYPES = new Set<DocType>([
-  "manual",
-  "guide",
-  "technical",
-  "reference",
+  "catalogue",
+  "datasheet",
+  "installation",
+  "user_manual",
 ]);
 
 /**
@@ -24,7 +24,7 @@ const VALID_DOC_TYPES = new Set<DocType>([
  *   file:        the PDF (required)
  *   title:       display title (required)
  *   product:     reiri_home | reiri_office | reiri_hotel | "" (optional)
- *   doc_type:    manual | guide | technical | reference | "" (optional)
+ *   doc_type:    catalogue | datasheet | installation | user_manual | "" (optional)
  *   description: short blurb shown on the document card (optional)
  */
 export async function POST(req: NextRequest) {

@@ -28,18 +28,15 @@ const BodySchema = z.object({
 /**
  * POST /api/chat
  *
- * Streams a Gemini-generated answer as plain text chunks via a ReadableStream.
- * The final chunk before [DONE] is a JSON-encoded citation envelope:
+ * Streams a Gemini-generated answer as SSE. Frame sequence:
  *
- *   data: <text delta>
- *   data: <text delta>
- *   ...
+ *   data: <text delta>          (one or more)
  *   event: citations
- *   data: {"citations":[{"index":1,"document_id":"...","title":"...","page_number":3}]}
+ *   data: {"citations":[...]}
+ *   event: debug
+ *   data: {"systemInstruction":"...","userPrompt":"...","chunks":[...]}
  *   event: done
- *
- * The client uses a simple SSE parser; we keep the format minimal so we don't
- * pull in a streaming SDK.
+ *   data: {}
  */
 export async function POST(req: NextRequest) {
   let parsed;
@@ -69,12 +66,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Build citation list now — order matches [^n] markers in the prompt.
+  // Build rich citation list — order matches [^n] markers in the prompt.
   const citations: Citation[] = chunks.map((c, i) => ({
     index: i + 1,
     document_id: c.document_id,
     title: c.title,
     page_number: c.page_number,
+    content: c.content,
+    similarity: c.similarity,
+    rrf_score: c.rrf_score,
+    vector_rank: c.vector_rank,
+    keyword_rank: c.keyword_rank,
   }));
 
   const prompt = buildPrompt({
@@ -98,7 +100,7 @@ export async function POST(req: NextRequest) {
     console.log("\n[Retrieved chunks]");
     chunks.forEach((c, i) =>
       console.log(
-        `  [${i + 1}] ${c.title} p.${c.page_number} (sim=${c.similarity.toFixed(3)})\n      ${c.content.slice(0, 120).replace(/\n/g, " ")}…`,
+        `  [${i + 1}] ${c.title} p.${c.page_number} (sim=${c.similarity.toFixed(3)} rrf=${c.rrf_score.toFixed(4)} vec=${c.vector_rank ?? "-"} kw=${c.keyword_rank ?? "-"})\n      ${c.content.slice(0, 120).replace(/\n/g, " ")}…`,
       ),
     );
     console.log("\n[User prompt]");
@@ -117,11 +119,25 @@ export async function POST(req: NextRequest) {
         })) {
           controller.enqueue(encoder.encode(`data: ${escapeSseData(delta)}\n\n`));
         }
+
+        // Citations frame — includes full chunk content + rank metadata.
         controller.enqueue(
           encoder.encode(
             `event: citations\ndata: ${JSON.stringify({ citations })}\n\n`,
           ),
         );
+
+        // Debug frame — always emitted; client only renders when debug mode is on.
+        controller.enqueue(
+          encoder.encode(
+            `event: debug\ndata: ${JSON.stringify({
+              systemInstruction: SYSTEM_PROMPT,
+              userPrompt: prompt,
+              chunks,
+            })}\n\n`,
+          ),
+        );
+
         controller.enqueue(encoder.encode(`event: done\ndata: {}\n\n`));
       } catch (err) {
         console.error("[/api/chat] stream error:", err);

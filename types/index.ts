@@ -2,7 +2,7 @@
 
 export type Product = "reiri_home" | "reiri_office" | "reiri_hotel";
 
-export type DocType = "manual" | "guide" | "technical" | "reference";
+export type DocType = "catalogue" | "datasheet" | "installation" | "user_manual";
 
 export interface DocumentRow {
   id: string;
@@ -25,6 +25,9 @@ export interface RetrievedChunk {
   page_number: number;
   content: string;
   similarity: number;
+  vector_rank: number | null;
+  keyword_rank: number | null;
+  rrf_score: number;
 }
 
 export interface Citation {
@@ -32,6 +35,11 @@ export interface Citation {
   document_id: string;
   title: string;
   page_number: number;
+  content: string;
+  similarity: number;
+  rrf_score: number;
+  vector_rank: number | null;
+  keyword_rank: number | null;
 }
 
 export type Role = "user" | "assistant";
@@ -41,6 +49,11 @@ export interface ChatMessage {
   role: Role;
   content: string;
   citations?: Citation[];
+  debug?: {
+    systemInstruction: string;
+    userPrompt: string;
+    chunks: RetrievedChunk[];
+  };
   createdAt: number;
 }
 
@@ -60,8 +73,8 @@ export const PRODUCT_LABELS: Record<Product, string> = {
 };
 
 export const DOC_TYPE_LABELS: Record<DocType, string> = {
-  manual: "Manual",
-  guide: "Guide",
-  technical: "Technical",
-  reference: "Reference",
+  catalogue: "Catalogue",
+  datasheet: "Datasheet",
+  installation: "Installation",
+  user_manual: "User Manual",
 };

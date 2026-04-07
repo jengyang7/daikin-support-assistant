@@ -17,10 +17,10 @@ const PRODUCT_OPTIONS: (Product | "")[] = [
 ];
 const DOC_TYPE_OPTIONS: (DocType | "")[] = [
   "",
-  "manual",
-  "guide",
-  "technical",
-  "reference",
+  "catalogue",
+  "datasheet",
+  "installation",
+  "user_manual",
 ];
 
 export function UploadDialog({
