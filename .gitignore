@@ -1,0 +1,28 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# next
+.next
+out
+build
+next-env.d.ts
+
+# env
+.env
+.env.local
+.env*.local
+.env.local.rtf
+
+# misc
+.DS_Store
+*.tsbuildinfo
+.vercel
+.idea
+.vscode
+
+# project source material (kept locally, not in repo)
+Daikin Docs/
+Screenshot/
+*.pptx
