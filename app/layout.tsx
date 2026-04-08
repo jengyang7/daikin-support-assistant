@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="flex h-screen w-screen overflow-hidden">
+        <div className="app-scale flex overflow-hidden">
           <Sidebar />
           <main className="flex flex-1 flex-col overflow-hidden bg-chatbg">
             {children}

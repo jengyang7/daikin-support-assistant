@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Search, Upload } from "lucide-react";
+import { Search, Upload, Star, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DOC_TYPE_LABELS,
@@ -10,20 +10,22 @@ import {
 } from "@/types";
 import { DocumentCard, type DocumentWithUrl } from "./document-card";
 import { UploadDialog } from "./upload-dialog";
+import { PageSpinner } from "@/components/ui/loading-spinner";
+import Link from "next/link";
 
-const DOC_TYPE_FILTERS: ("all" | DocType)[] = [
+const PRODUCT_TABS: ("all" | Product)[] = [
+  "all",
+  "reiri_office",
+  "reiri_home",
+  "reiri_hotel",
+];
+
+const DOC_TYPE_OPTIONS: ("all" | DocType)[] = [
   "all",
   "catalogue",
   "datasheet",
   "installation",
   "user_manual",
-];
-
-const PRODUCT_FILTERS: ("all" | Product)[] = [
-  "all",
-  "reiri_home",
-  "reiri_office",
-  "reiri_hotel",
 ];
 
 export function DocumentLibrary() {
@@ -47,9 +49,7 @@ export function DocumentLibrary() {
     }
   }
 
-  useEffect(() => {
-    refresh();
-  }, []);
+  useEffect(() => { refresh(); }, []);
 
   async function handleDelete(id: string) {
     const res = await fetch(`/api/documents?id=${id}`, { method: "DELETE" });
@@ -69,84 +69,177 @@ export function DocumentLibrary() {
     });
   }, [docs, search, typeFilter, productFilter]);
 
+  const recentDocs = useMemo(() => [...docs].slice(0, 3), [docs]);
+
   return (
-    <div className="flex h-full flex-1 flex-col overflow-hidden">
-      {/* Top bar */}
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-        <div className="text-[15px] font-semibold text-slate-800">
-          Document Library
-        </div>
-        <button
-          onClick={() => setUploadOpen(true)}
-          className="flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-[13px] font-medium text-white hover:bg-brand-dark"
-        >
-          <Upload className="h-4 w-4" />
-          Upload PDF
-        </button>
-      </header>
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-chatbg">
 
-      {/* Body */}
-      <div className="scroll-thin flex-1 overflow-y-auto px-8 py-6">
-        <h1 className="text-2xl font-bold text-slate-800">Knowledge Base</h1>
-        <p className="mt-1 text-[14px] text-slate-500">
-          Browse and manage Daikin technical documentation
-        </p>
-
-        {/* Search + filters */}
-        <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search documents…"
-              className="w-full rounded-md border border-slate-200 bg-white py-2 pl-9 pr-3 text-[13px] outline-none focus:border-brand"
-            />
+      <div className="scroll-thin flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-5xl px-6 py-6">
+          {/* Hero banner */}
+          <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1d71d5] to-[#4fa3e8] p-8 text-white">
+            {/* Abstract swirl overlay */}
+            <div className="pointer-events-none absolute inset-0 opacity-10">
+              <svg viewBox="0 0 400 200" className="h-full w-full" preserveAspectRatio="xMaxYMid slice">
+                <circle cx="350" cy="80" r="120" fill="none" stroke="white" strokeWidth="40" />
+                <circle cx="320" cy="130" r="80" fill="none" stroke="white" strokeWidth="30" />
+              </svg>
+            </div>
+            <div className="relative max-w-xl">
+              <h1 className="text-[28px] font-black leading-tight text-white">
+                Daikin Technical<br />Knowledge Base
+              </h1>
+              <p className="mt-2 text-[14px] text-white/80">
+                Access the complete ecosystem of Reiri climate control documentation.
+                Engineered for speed, designed for clarity.
+              </p>
+              <div className="mt-5 flex gap-3">
+                <StatBadge value={`${docs.length}`} label="Documents" />
+              </div>
+            </div>
           </div>
-          <div className="flex gap-1.5">
-            {DOC_TYPE_FILTERS.map((t) => (
-              <FilterPill
-                key={t}
-                active={typeFilter === t}
-                onClick={() => setTypeFilter(t)}
+
+          {/* Filters row */}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            {/* Product tabs */}
+            <div className="flex gap-1 rounded-xl bg-white p-1 shadow-sm border border-slate-200">
+              {PRODUCT_TABS.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setProductFilter(p)}
+                  className={cn(
+                    "rounded-lg px-4 py-1.5 text-[13px] font-medium transition",
+                    productFilter === p
+                      ? "bg-white text-brand shadow-sm border border-slate-200"
+                      : "text-slate-500 hover:text-slate-700",
+                  )}
+                >
+                  {p === "all" ? "All Products" : PRODUCT_LABELS[p as Product]}
+                </button>
+              ))}
+            </div>
+
+            {/* Type dropdown + search + upload */}
+            <div className="flex items-center gap-2">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as "all" | DocType)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 outline-none focus:border-brand"
               >
-                {t === "all" ? "All" : DOC_TYPE_LABELS[t as DocType]}
-              </FilterPill>
-            ))}
+                <option value="all">All Documents</option>
+                {DOC_TYPE_OPTIONS.slice(1).map((t) => (
+                  <option key={t} value={t}>{DOC_TYPE_LABELS[t as DocType]}</option>
+                ))}
+              </select>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search…"
+                  className="w-44 rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-[13px] outline-none focus:border-brand"
+                />
+              </div>
+              <button
+                onClick={() => setUploadOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[13px] font-semibold text-white transition hover:bg-brand-dark"
+              >
+                <Upload className="h-4 w-4" />
+                Upload PDF
+              </button>
+            </div>
+          </div>
+
+          {/* Two-column layout: main content + right sidebar */}
+          <div className="flex gap-5">
+            {/* Main: document grid */}
+            <div className="flex-1 min-w-0">
+              {loading ? (
+                <PageSpinner />
+              ) : filtered.length === 0 ? (
+                <div className="py-12 text-center text-[14px] text-slate-400">
+                  {docs.length === 0
+                    ? 'No documents yet — click "Upload PDF" to add the first one.'
+                    : "No documents match the current filters."}
+                </div>
+              ) : (
+                <div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-[15px] font-semibold text-slate-700">
+                      {productFilter === "all" ? "All Documents" : PRODUCT_LABELS[productFilter as Product]}
+                    </h2>
+                    <span className="text-[12px] text-slate-400">{filtered.length} documents</span>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {filtered.map((d) => (
+                      <DocumentCard key={d.id} doc={d} onDelete={handleDelete} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right sidebar */}
+            <div className="w-64 flex-shrink-0 space-y-4">
+              {/* Top Resources */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-3 flex items-center gap-2">
+                  <Star className="h-4 w-4 text-amber-400" />
+                  <span className="text-[13px] font-semibold text-slate-700">Top Resources</span>
+                </div>
+                <div className="space-y-2">
+                  {recentDocs.length === 0 ? (
+                    <div className="text-[12px] text-slate-400">No documents yet</div>
+                  ) : (
+                    recentDocs.map((d) => (
+                      <button
+                        key={d.id}
+                        onClick={() => d.url && window.open(d.url, "_blank")}
+                        className="flex w-full items-start justify-between gap-2 rounded-lg p-2 text-left text-[12px] hover:bg-slate-50"
+                      >
+                        <div>
+                          <div className="font-medium text-slate-700 line-clamp-1">{d.title}</div>
+                          {d.doc_type && (
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                              {DOC_TYPE_LABELS[d.doc_type]}
+                            </div>
+                          )}
+                        </div>
+                        <span className="mt-0.5 text-slate-300">›</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+                <button
+                  onClick={() => setProductFilter("all")}
+                  className="mt-3 text-[12px] font-semibold text-brand hover:underline"
+                >
+                  See All Popular Docs
+                </button>
+              </div>
+
+              {/* Can't find a manual */}
+              <div className="rounded-xl bg-slate-900 p-4 text-white">
+                <div className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                  Direct Support
+                </div>
+                <div className="text-[15px] font-bold leading-snug">
+                  Can&apos;t find a manual?
+                </div>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-slate-400">
+                  Our AI assistant is trained on the entire Daikin internal database.
+                </p>
+                <Link
+                  href="/chat"
+                  className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-[13px] font-semibold text-slate-900 transition hover:bg-slate-100"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Ask Daikin AI
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="mt-3 flex items-center gap-2 text-[12px] text-slate-500">
-          <span className="font-medium text-slate-600">Product</span>
-          {PRODUCT_FILTERS.map((p) => (
-            <FilterPill
-              key={p}
-              active={productFilter === p}
-              onClick={() => setProductFilter(p)}
-            >
-              {p === "all" ? "All Products" : PRODUCT_LABELS[p as Product]}
-            </FilterPill>
-          ))}
-        </div>
-
-        <div className="mt-4 text-[12px] text-slate-500">
-          {loading ? "Loading…" : `${filtered.length} documents found`}
-        </div>
-
-        {/* Grid */}
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((d) => (
-            <DocumentCard key={d.id} doc={d} onDelete={handleDelete} />
-          ))}
-        </div>
-
-        {!loading && filtered.length === 0 && (
-          <div className="mt-12 text-center text-[14px] text-slate-400">
-            {docs.length === 0
-              ? 'No documents yet — click "Upload PDF" to add the first one.'
-              : "No documents match the current filters."}
-          </div>
-        )}
       </div>
 
       <UploadDialog
@@ -158,26 +251,11 @@ export function DocumentLibrary() {
   );
 }
 
-function FilterPill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+function StatBadge({ value, label }: { value: string; label: string }) {
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-3 py-1 text-[12px] font-medium transition",
-        active
-          ? "border-brand bg-brand/10 text-brand"
-          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300",
-      )}
-    >
-      {children}
-    </button>
+    <div className="rounded-xl bg-black/20 px-4 py-2.5 backdrop-blur-sm">
+      <div className="text-[22px] font-black text-white leading-none">{value}</div>
+      <div className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-white/70">{label}</div>
+    </div>
   );
 }

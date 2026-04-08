@@ -3,10 +3,16 @@ import { z } from "zod";
 import { retrieve } from "@/lib/rag/retrieve";
 import { buildPrompt, SYSTEM_PROMPT } from "@/lib/rag/prompt";
 import { streamGenerate } from "@/lib/gemini";
-import type { Citation } from "@/types";
+import type { Citation, Product, RetrievedChunk } from "@/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+const SMALL_TALK_SYSTEM_PROMPT = `You are Daikin Technical Support Assistant.
+
+For short greetings and conversational openers, reply warmly and briefly in plain prose.
+- Do not use citations.
+- Do not mention source documents.
+- Keep the reply to one short paragraph.`;
 
 const BodySchema = z.object({
   question: z.string().min(1).max(2000),
@@ -19,11 +25,20 @@ const BodySchema = z.object({
     )
     .max(20)
     .default([]),
-  product: z
-    .enum(["reiri_home", "reiri_office", "reiri_hotel"])
-    .nullable()
-    .optional(),
+  products: z
+    .array(z.enum(["reiri_home", "reiri_office", "reiri_hotel"]))
+    .default([]),
 });
+
+function isSmallTalkQuestion(question: string): boolean {
+  const normalized = question
+    .trim()
+    .toLowerCase()
+    .replace(/[!.?]+$/g, "")
+    .replace(/\s+/g, " ");
+
+  return /^(hi|hello|hello there|hey|hey there|good morning|good afternoon|good evening|thanks|thank you|ok|okay|yo|sup)$/.test(normalized);
+}
 
 /**
  * POST /api/chat
@@ -49,21 +64,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { question, history, product } = parsed;
+  const { question, history, products } = parsed;
+  const isSmallTalk = isSmallTalkQuestion(question);
 
-  // 1. Retrieval
-  let chunks;
-  try {
-    chunks = await retrieve({
-      query: question,
-      product: product ?? null,
-      matchCount: 6,
-    });
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: "Retrieval failed", details: String(err) }),
-      { status: 500, headers: { "content-type": "application/json" } },
-    );
+  // 1. Retrieval — when exactly one product selected, filter to it; otherwise no filter.
+  let chunks: RetrievedChunk[] = [];
+  if (!isSmallTalk) {
+    try {
+      chunks = await retrieve({
+        query: question,
+        product: products.length === 1 ? products[0] : null,
+        matchCount: 6,
+      });
+    } catch (err) {
+      return new Response(
+        JSON.stringify({ error: "Retrieval failed", details: String(err) }),
+        { status: 500, headers: { "content-type": "application/json" } },
+      );
+    }
   }
 
   // Build rich citation list — order matches [^n] markers in the prompt.
@@ -79,16 +97,19 @@ export async function POST(req: NextRequest) {
     keyword_rank: c.keyword_rank,
   }));
 
-  const prompt = buildPrompt({
-    history: history.map((m, i) => ({
-      id: `h-${i}`,
-      role: m.role,
-      content: m.content,
-      createdAt: 0,
-    })),
-    question,
-    chunks,
-  });
+  const prompt = isSmallTalk
+    ? `Conversation so far:\n${history.length > 0 ? history.map((m) => `${m.role}: ${m.content}`).join("\n") : "(no prior turns)"}\n\nUser message:\n${question}\n\nReply now without citations.`
+    : buildPrompt({
+        history: history.map((m, i) => ({
+          id: `h-${i}`,
+          role: m.role,
+          content: m.content,
+          createdAt: 0,
+        })),
+        question,
+        chunks,
+        targetProducts: products.length > 0 ? products : undefined,
+      });
 
   // Dev-only: log the full prompt + retrieved chunks so you can evaluate quality.
   if (process.env.NODE_ENV === "development") {
@@ -114,24 +135,25 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         for await (const delta of streamGenerate({
-          systemInstruction: SYSTEM_PROMPT,
+          systemInstruction: isSmallTalk ? SMALL_TALK_SYSTEM_PROMPT : SYSTEM_PROMPT,
           prompt,
         })) {
           controller.enqueue(encoder.encode(`data: ${escapeSseData(delta)}\n\n`));
         }
 
-        // Citations frame — includes full chunk content + rank metadata.
-        controller.enqueue(
-          encoder.encode(
-            `event: citations\ndata: ${JSON.stringify({ citations })}\n\n`,
-          ),
-        );
+        if (!isSmallTalk && citations.length > 0) {
+          controller.enqueue(
+            encoder.encode(
+              `event: citations\ndata: ${JSON.stringify({ citations })}\n\n`,
+            ),
+          );
+        }
 
         // Debug frame — always emitted; client only renders when debug mode is on.
         controller.enqueue(
           encoder.encode(
             `event: debug\ndata: ${JSON.stringify({
-              systemInstruction: SYSTEM_PROMPT,
+              systemInstruction: isSmallTalk ? SMALL_TALK_SYSTEM_PROMPT : SYSTEM_PROMPT,
               userPrompt: prompt,
               chunks,
             })}\n\n`,

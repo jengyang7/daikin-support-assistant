@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --app-zoom: 1.1;
+}
+
 html,
 body {
   height: 100%;
@@ -9,21 +13,28 @@ body {
 
 body {
   @apply bg-chatbg text-slate-900 antialiased;
+  overflow: hidden;
 }
 
-/* Custom scrollbar for the chat + sidebar */
+.app-scale {
+  width: calc(100vw / var(--app-zoom));
+  height: calc(100vh / var(--app-zoom));
+  zoom: var(--app-zoom);
+}
+
+/* Custom scrollbar */
 .scroll-thin::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full;
+  @apply bg-slate-200 rounded-full;
 }
 .scroll-thin::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-400;
+  @apply bg-slate-300;
 }
 .scroll-thin-dark::-webkit-scrollbar-thumb {
-  @apply bg-sidebar-active rounded-full;
+  @apply bg-slate-200 rounded-full;
 }
 
 /* Markdown content styling inside assistant bubbles */
@@ -58,3 +69,12 @@ body {
 .prose-chat a {
   @apply text-brand underline underline-offset-2;
 }
+.prose-chat button {
+  text-decoration: none;
+}
+.prose-chat h1, .prose-chat h2, .prose-chat h3 {
+  @apply font-semibold text-brand mt-3 mb-1;
+}
+.prose-chat h1 { @apply text-[17px]; }
+.prose-chat h2 { @apply text-[15px]; }
+.prose-chat h3 { @apply text-[14px]; }

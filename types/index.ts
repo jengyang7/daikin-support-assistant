@@ -61,7 +61,7 @@ export interface Conversation {
   id: string;
   title: string;
   messages: ChatMessage[];
-  productFilter: Product | null;
+  productFilter: Product[];
   createdAt: number;
   updatedAt: number;
 }

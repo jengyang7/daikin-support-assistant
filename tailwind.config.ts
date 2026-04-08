@@ -5,21 +5,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Daikin Support Assistant palette (matches mockups)
-        sidebar: {
-          DEFAULT: "#0f1f3d",
-          hover: "#19294a",
-          active: "#22325a",
-          border: "#1a2a4a",
-        },
         brand: {
-          DEFAULT: "#19b8d6", // cyan accent (logo, send button)
-          dark: "#0e8fa8",
+          DEFAULT: "#0097E0",
+          dark: "#0079b3",
+          light: "#e6f5fc",
         },
-        chatbg: "#eef3f9",
+        sidebar: {
+          DEFAULT: "#ffffff",
+          hover: "#f0f5ff",
+          active: "#f0f5ff",
+          border: "#e2e8f0",
+        },
+        chatbg: "#f5f7fa",
         bubble: {
           assistant: "#ffffff",
-          user: "#1f7ae0",
+          user: "#54C3F1",
         },
       },
       fontFamily: {
