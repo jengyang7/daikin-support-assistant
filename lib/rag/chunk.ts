@@ -24,6 +24,8 @@ const PRODUCT_LABELS: Record<Product, string> = {
   reiri_home: "Reiri Home",
   reiri_office: "Reiri Office",
   reiri_hotel: "Reiri Hotel",
+  reiri_resort: "Reiri Resort",
+  reiri_all: "All Reiri Products",
 };
 
 const DOC_TYPE_LABELS: Record<DocType, string> = {

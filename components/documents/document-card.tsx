@@ -1,6 +1,6 @@
 "use client";
-import { FileText, Wrench, BookOpen, LayoutGrid, Trash2, ExternalLink } from "lucide-react";
-import { formatBytes } from "@/lib/utils";
+import { FileText, Wrench, BookOpen, LayoutGrid, Trash2, ExternalLink, Star } from "lucide-react";
+import { cn, formatBytes } from "@/lib/utils";
 import {
   DOC_TYPE_LABELS,
   PRODUCT_LABELS,
@@ -8,6 +8,7 @@ import {
   type Product,
   type DocumentRow,
 } from "@/types";
+import { DOC_TYPE_BADGE_COLORS, DOC_TYPE_ICON_COLORS } from "./doc-type-theme";
 
 export interface DocumentWithUrl extends DocumentRow {
   url: string | null;
@@ -20,48 +21,49 @@ const DOC_TYPE_ICONS: Record<DocType, React.ElementType> = {
   user_manual: BookOpen,
 };
 
-const DOC_TYPE_COLORS: Record<DocType, string> = {
-  catalogue: "text-purple-500 bg-purple-50",
-  datasheet: "text-blue-500 bg-blue-50",
-  installation: "text-amber-500 bg-amber-50",
-  user_manual: "text-emerald-500 bg-emerald-50",
-};
-
-const DOC_TYPE_BADGE: Record<DocType, string> = {
-  catalogue: "bg-purple-50 text-purple-600 border-purple-200",
-  datasheet: "bg-blue-50 text-blue-600 border-blue-200",
-  installation: "bg-amber-50 text-amber-600 border-amber-200",
-  user_manual: "bg-emerald-50 text-emerald-600 border-emerald-200",
-};
-
-function formatReadableDate(d: string): string {
-  return new Date(d).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 export function DocumentCard({
   doc,
   onDelete,
+  isFavourite,
+  onToggleFavourite,
+  canFavourite,
 }: {
   doc: DocumentWithUrl;
   onDelete: (id: string) => void;
+  isFavourite: boolean;
+  onToggleFavourite: (id: string) => void;
+  canFavourite: boolean;
 }) {
   const Icon = doc.doc_type ? DOC_TYPE_ICONS[doc.doc_type] : FileText;
-  const iconColor = doc.doc_type ? DOC_TYPE_COLORS[doc.doc_type] : "text-slate-400 bg-slate-50";
+  const iconColor = doc.doc_type ? DOC_TYPE_ICON_COLORS[doc.doc_type] : "text-slate-400 bg-slate-50";
 
   return (
     <div className="group relative flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md hover:border-brand/40">
+      {/* Favourite button — top-right corner, always visible */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggleFavourite(doc.id); }}
+        disabled={!canFavourite}
+        title={isFavourite ? "Remove from favourites" : canFavourite ? "Add to favourites" : "Max 3 favourites reached"}
+        className={cn(
+          "absolute right-3 top-3 rounded p-1 transition",
+          isFavourite
+            ? "text-amber-400 hover:text-amber-500"
+            : canFavourite
+            ? "text-slate-200 hover:text-amber-400"
+            : "cursor-not-allowed text-slate-100",
+        )}
+      >
+        <Star className={cn("h-4 w-4", isFavourite && "fill-current")} />
+      </button>
+
       {/* Icon + title row */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 pr-6">
         <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${iconColor}`}>
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
           <div
-            className="text-[14px] font-semibold leading-snug text-slate-800 line-clamp-2 group-hover:line-clamp-none transition-all"
+            className="text-[14px] font-semibold leading-snug text-slate-800 line-clamp-2"
             title={doc.title}
           >
             {doc.title}
@@ -77,7 +79,7 @@ export function DocumentCard({
       {/* Badges */}
       <div className="mt-2.5 flex flex-wrap gap-1.5">
         {doc.doc_type && (
-          <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${DOC_TYPE_BADGE[doc.doc_type]}`}>
+          <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${DOC_TYPE_BADGE_COLORS[doc.doc_type]}`}>
             {DOC_TYPE_LABELS[doc.doc_type]}
           </span>
         )}
@@ -100,11 +102,6 @@ export function DocumentCard({
           )}
           {doc.file_size_bytes != null && doc.file_size_bytes > 0 && (
             <span>{formatBytes(doc.file_size_bytes)}</span>
-          )}
-          {doc.created_at && (
-            <span className={doc.page_count || (doc.file_size_bytes && doc.file_size_bytes > 0) ? " · " : ""}>
-              {formatReadableDate(doc.created_at)}
-            </span>
           )}
         </div>
         <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">

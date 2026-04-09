@@ -9,6 +9,8 @@ const VALID_PRODUCTS = new Set<Product>([
   "reiri_home",
   "reiri_office",
   "reiri_hotel",
+  "reiri_resort",
+  "reiri_all",
 ]);
 const VALID_DOC_TYPES = new Set<DocType>([
   "catalogue",

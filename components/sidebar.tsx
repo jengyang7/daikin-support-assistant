@@ -129,13 +129,13 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-full w-[300px] flex-shrink-0 flex-col border-r border-slate-200 bg-white">
+    <aside className="flex h-full w-[230px] flex-shrink-0 flex-col border-r border-slate-200 bg-white xl:w-[260px] 2xl:w-[300px]">
       {/* Brand */}
       <div className="px-5 pt-6 pb-7">
-        <div className="text-[18px] font-bold text-brand leading-tight">
+        <div className="text-[20px] font-extrabold text-brand leading-tight">
           Daikin Technical Support
         </div>
-        <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+        <div className="mt-0.5 text-[12px] font-semibold uppercase tracking-widest text-slate-400">
           Powered by Gemini AI
         </div>
       </div>

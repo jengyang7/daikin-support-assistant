@@ -257,13 +257,13 @@ export function ChatWindow() {
 
 function EmptyState({ onExampleClick }: { onExampleClick: (text: string) => void }) {
   const examples = [
-    "How to set up controller in Reiri Office",
-    "Show wiring diagram for Reiri controller",
-    "How to fix error code E3",
-    "How to configure WsCloud relay remote access",
+    "How to wire the adapter box to indoor units for Reiri?",
+    "What are the specifications and supported protocols of Reiri Office?",
+    "How to configure scheduling and temperature setpoints in Reiri?",
+    "What are the system requirements for installing Reiri Home?",
   ];
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="flex flex-col items-center justify-center pt-12 pb-4 text-center">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 text-sky-500 shadow-sm">
         <Bot className="h-6 w-6" />
       </div>
@@ -273,17 +273,7 @@ function EmptyState({ onExampleClick }: { onExampleClick: (text: string) => void
       <p className="mt-1 text-[14px] text-slate-500">
         Ask me anything about Daikin products, configuration, or troubleshooting.
       </p>
-      <div className="mt-6 flex w-full max-w-[70%] flex-wrap justify-center gap-2">
-        {examples.map((ex) => (
-          <button
-            key={ex}
-            onClick={() => onExampleClick(ex)}
-            className="rounded-full border border-brand/30 bg-white px-4 py-1.5 text-[12px] font-medium text-brand transition hover:border-brand hover:bg-brand-light"
-          >
-            {ex}
-          </button>
-        ))}
-      </div>
+      {/* Suggestions hidden */}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { PRODUCT_LABELS, type Product } from "@/types";
 
-const PRODUCTS: Product[] = ["reiri_home", "reiri_office", "reiri_hotel"];
+const PRODUCTS: Product[] = ["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort"];
 
 export function ChatInput({
   onSubmit,
