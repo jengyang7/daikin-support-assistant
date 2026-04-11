@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/sidebar";
+import { AppShell } from "@/components/app-shell";
 
 export const metadata: Metadata = {
   title: "Daikin Support Assistant",
@@ -16,12 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="app-scale flex overflow-hidden">
-          <Sidebar />
-          <main className="flex flex-1 flex-col overflow-hidden bg-chatbg">
-            {children}
-          </main>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

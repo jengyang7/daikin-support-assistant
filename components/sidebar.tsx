@@ -9,6 +9,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -20,7 +21,7 @@ import {
 import { setDebugMode, useDebugMode } from "@/lib/debug-mode";
 import type { Conversation } from "@/types";
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -80,6 +81,7 @@ export function Sidebar() {
     window.localStorage.setItem("reiri-active-conversation", c.id);
     window.dispatchEvent(new Event("reiri:history-changed"));
     window.dispatchEvent(new Event("reiri:active-changed"));
+    onClose?.();
     if (pathname !== "/chat") window.location.href = "/chat";
   }
 
@@ -87,6 +89,7 @@ export function Sidebar() {
     setMenuOpenId(null);
     window.localStorage.setItem("reiri-active-conversation", id);
     window.dispatchEvent(new Event("reiri:active-changed"));
+    onClose?.();
     if (pathname !== "/chat") window.location.href = "/chat";
   }
 
@@ -131,13 +134,24 @@ export function Sidebar() {
   return (
     <aside className="flex h-full w-[230px] flex-shrink-0 flex-col border-r border-slate-200 bg-white xl:w-[260px] 2xl:w-[300px]">
       {/* Brand */}
-      <div className="px-5 pt-6 pb-7">
-        <div className="text-[20px] font-extrabold text-brand leading-tight">
-          Daikin Technical Support
+      <div className="flex items-start justify-between px-5 pt-6 pb-7">
+        <div>
+          <div className="text-[20px] font-extrabold text-brand leading-tight">
+            Daikin Technical Support
+          </div>
+          <div className="mt-0.5 text-[12px] font-semibold uppercase tracking-widest text-slate-400">
+            Powered by Gemini AI
+          </div>
         </div>
-        <div className="mt-0.5 text-[12px] font-semibold uppercase tracking-widest text-slate-400">
-          Powered by Gemini AI
-        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+            aria-label="Close menu"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* New chat button */}
@@ -155,6 +169,7 @@ export function Sidebar() {
       <div className="px-4 pb-2">
         <Link
           href="/documents"
+          onClick={() => onClose?.()}
           className={cn(
             "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition",
             pathname === "/documents"

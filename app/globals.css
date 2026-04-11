@@ -22,6 +22,16 @@ body {
   zoom: var(--app-zoom);
 }
 
+/* On mobile, disable zoom scaling and use dynamic viewport height */
+@media (max-width: 767px) {
+  .app-scale {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    zoom: 1;
+  }
+}
+
 /* Custom scrollbar */
 .scroll-thin::-webkit-scrollbar {
   width: 6px;

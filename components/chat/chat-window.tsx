@@ -195,8 +195,8 @@ export function ChatWindow() {
   return (
     <SourceContext.Provider value={{ openPdf, openDebug, urlMap }}>
       <div className="relative flex h-full flex-1 flex-col bg-chatbg">
-        {/* Top bar */}
-        <header className="flex items-center justify-between px-6 py-3">
+        {/* Top bar — desktop only (mobile has AppShell header) */}
+        <header className="hidden md:flex items-center justify-between px-6 py-3">
           <div className="flex-1" />
           <div className="text-[14px] font-semibold text-slate-700">
             {isEmpty ? "" : conv.title}
@@ -205,7 +205,7 @@ export function ChatWindow() {
         </header>
 
         {isEmpty ? (
-          <div className="flex flex-1 items-center justify-center px-6 pb-24 pt-6">
+          <div className="flex flex-1 items-center justify-center px-3 pb-24 pt-6 sm:px-6">
             <div className="w-full max-w-3xl -translate-y-10">
               <EmptyState onExampleClick={setInputValue} />
               <ChatInput
@@ -222,7 +222,7 @@ export function ChatWindow() {
         ) : (
           <>
             {/* Messages */}
-            <div ref={scrollerRef} className="scroll-thin flex-1 overflow-y-auto px-6 py-6 pb-36">
+            <div ref={scrollerRef} className="scroll-thin flex-1 overflow-y-auto px-3 py-4 pb-36 sm:px-6 sm:py-6">
               <div className="mx-auto max-w-3xl space-y-6">
                 {conv.messages.map((m) => (
                   <MessageBubble key={m.id} message={m} />

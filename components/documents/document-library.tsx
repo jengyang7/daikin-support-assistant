@@ -168,9 +168,9 @@ export function DocumentLibrary() {
       )}
 
       <div className="scroll-thin flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl px-6 py-6">
+        <div className="mx-auto max-w-5xl px-4 py-4 sm:px-6 sm:py-6">
           {/* Hero banner */}
-          <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1d71d5] to-[#4fa3e8] p-8 text-white">
+          <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1d71d5] to-[#4fa3e8] p-5 sm:p-8 text-white">
             <div className="pointer-events-none absolute inset-0 opacity-10">
               <svg viewBox="0 0 400 200" className="h-full w-full" preserveAspectRatio="xMaxYMid slice">
                 <circle cx="350" cy="80" r="120" fill="none" stroke="white" strokeWidth="40" />
@@ -178,28 +178,28 @@ export function DocumentLibrary() {
               </svg>
             </div>
             <div className="relative max-w-xl">
-              <h1 className="text-[28px] font-black leading-tight text-white">
+              <h1 className="text-[22px] sm:text-[28px] font-black leading-tight text-white">
                 Daikin Technical<br />Knowledge Base
               </h1>
-              <p className="mt-2 text-[14px] text-white/80">
+              <p className="mt-2 text-[13px] sm:text-[14px] text-white/80">
                 Browse catalogues, datasheets, installation guides, and user manuals
                 for the complete Reiri product range — all in one place.
               </p>
-              <div className="mt-5 flex gap-3">
+              <div className="mt-4 sm:mt-5 flex gap-3">
                 <StatBadge value={`${docs.length}`} label="Documents" />
               </div>
             </div>
           </div>
 
-          {/* Row 1: Product tabs + Upload button */}
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-1 rounded-xl bg-white p-1 shadow-sm border border-slate-200">
+          {/* Row 1: Product tabs (+ Upload button inline on desktop) */}
+          <div className="mb-3 flex items-center gap-3">
+            <div className="flex overflow-x-auto gap-1 rounded-xl bg-white p-1 shadow-sm border border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {PRODUCT_TABS.map((p) => (
                 <button
                   key={p}
                   onClick={() => setProductFilter(p)}
                   className={cn(
-                    "rounded-lg px-4 py-1.5 text-[13px] font-medium transition",
+                    "flex-shrink-0 rounded-lg px-3 sm:px-4 py-1.5 text-[13px] font-medium transition",
                     productFilter === p
                       ? "bg-brand text-white shadow-sm"
                       : "text-slate-500 hover:text-slate-700",
@@ -209,9 +209,10 @@ export function DocumentLibrary() {
                 </button>
               ))}
             </div>
+            {/* Upload button: icon-only on mobile, full label on desktop */}
             <button
               onClick={() => setUploadOpen(true)}
-              className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-brand-dark"
+              className="hidden sm:flex ml-auto flex-shrink-0 items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-brand-dark"
             >
               <Upload className="h-4 w-4" />
               Upload PDF
@@ -219,8 +220,8 @@ export function DocumentLibrary() {
           </div>
 
           {/* Row 2: Type filter + search */}
-          <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+          <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex overflow-x-auto gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {DOC_TYPE_OPTIONS.map((type) => {
                 const styles =
                   type === "all"
@@ -235,7 +236,7 @@ export function DocumentLibrary() {
                     key={type}
                     onClick={() => setTypeFilter(type)}
                     className={cn(
-                      "rounded-lg px-4 py-1.5 text-[13px] font-medium transition",
+                      "flex-shrink-0 rounded-lg px-3 sm:px-4 py-1.5 text-[13px] font-medium transition",
                       typeFilter === type ? styles.active : styles.inactive,
                     )}
                   >
@@ -254,6 +255,15 @@ export function DocumentLibrary() {
               />
             </div>
           </div>
+
+          {/* Upload button — full-width, mobile only, after all filters */}
+          <button
+            onClick={() => setUploadOpen(true)}
+            className="mb-5 flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-brand-dark sm:hidden"
+          >
+            <Upload className="h-4 w-4" />
+            Upload PDF
+          </button>
 
           {/* Document grid */}
           {loading ? (

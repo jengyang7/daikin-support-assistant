@@ -107,11 +107,11 @@ export function ChatInput({
         </div>
 
         {/* Product filter pills */}
-        <div className="flex items-center gap-1.5 px-4 pb-4 pt-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto px-4 pb-4 pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <button
             onClick={() => onProductChange([])}
             className={cn(
-              "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition",
+              "flex-shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition",
               products.length === 0
                 ? "border-brand bg-brand text-white"
                 : "border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700",
@@ -124,7 +124,7 @@ export function ChatInput({
               key={p}
               onClick={() => toggleProduct(p)}
               className={cn(
-                "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition",
+                "flex-shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition",
                 products.includes(p)
                   ? "border-brand bg-brand text-white"
                   : "border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700",
