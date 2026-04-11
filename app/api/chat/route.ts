@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { retrieve } from "@/lib/rag/retrieve";
 import { buildPrompt, SYSTEM_PROMPT } from "@/lib/rag/prompt";
-import { streamGenerate } from "@/lib/gemini";
+import { describeImages, streamGenerate } from "@/lib/gemini";
 import type { Citation, Product, RetrievedChunk } from "@/types";
 
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ For short greetings and conversational openers, reply warmly and briefly in plai
 - Keep the reply to one short paragraph.`;
 
 const BodySchema = z.object({
-  question: z.string().min(1).max(2000),
+  question: z.string().max(2000).default(""),
   history: z
     .array(
       z.object({
@@ -28,6 +28,10 @@ const BodySchema = z.object({
   products: z
     .array(z.enum(["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort"]))
     .default([]),
+  images: z
+    .array(z.object({ mimeType: z.string(), data: z.string() }))
+    .max(3)
+    .optional(),
 });
 
 function isSmallTalkQuestion(question: string): boolean {
@@ -64,15 +68,42 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { question, history, products } = parsed;
-  const isSmallTalk = isSmallTalkQuestion(question);
+  const { question, history, products, images } = parsed;
+  const hasImages = (images?.length ?? 0) > 0;
+  const hasText = question.trim().length > 0;
 
-  // 1. Retrieval — when exactly one product selected, filter to it; otherwise no filter.
+  // Require at least text or images
+  if (!hasText && !hasImages) {
+    return new Response(
+      JSON.stringify({ error: "Provide a question or attach an image." }),
+      { status: 400, headers: { "content-type": "application/json" } },
+    );
+  }
+
+  const isSmallTalk = hasText && !hasImages && isSmallTalkQuestion(question);
+
+  // 1. If images are present, ask Gemini to describe them first so we always
+  //    have a meaningful retrieval query — even for image-only or vague questions.
+  let imageDescription = "";
+  if (hasImages) {
+    try {
+      imageDescription = await describeImages(images!);
+    } catch {
+      // Non-fatal — fall back to text-only retrieval query
+    }
+  }
+
+  // Build the retrieval query: image description + user text (deduplicated)
+  const retrievalQuery = [imageDescription, question.trim()]
+    .filter(Boolean)
+    .join("\n\n");
+
+  // 2. Retrieval — skip only for small talk (text-only greetings).
   let chunks: RetrievedChunk[] = [];
   if (!isSmallTalk) {
     try {
       chunks = await retrieve({
-        query: question,
+        query: retrievalQuery,
         product: products.length === 1 ? products[0] : null,
         matchCount: 6,
       });
@@ -97,6 +128,10 @@ export async function POST(req: NextRequest) {
     keyword_rank: c.keyword_rank,
   }));
 
+  // For the user-facing prompt: use image description as the question when no
+  // text was provided, so buildPrompt has something meaningful to work with.
+  const effectiveQuestion = hasText ? question : imageDescription;
+
   const prompt = isSmallTalk
     ? `Conversation so far:\n${history.length > 0 ? history.map((m) => `${m.role}: ${m.content}`).join("\n") : "(no prior turns)"}\n\nUser message:\n${question}\n\nReply now without citations.`
     : buildPrompt({
@@ -106,7 +141,7 @@ export async function POST(req: NextRequest) {
           content: m.content,
           createdAt: 0,
         })),
-        question,
+        question: effectiveQuestion,
         chunks,
         targetProducts: products.length > 0 ? products : undefined,
       });
@@ -137,6 +172,7 @@ export async function POST(req: NextRequest) {
         for await (const delta of streamGenerate({
           systemInstruction: isSmallTalk ? SMALL_TALK_SYSTEM_PROMPT : SYSTEM_PROMPT,
           prompt,
+          images,
         })) {
           controller.enqueue(encoder.encode(`data: ${escapeSseData(delta)}\n\n`));
         }

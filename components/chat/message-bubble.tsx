@@ -50,8 +50,28 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
     return (
       <div className="flex animate-fade-in flex-col items-end">
         <div className="flex w-full justify-end gap-2.5">
-          <div className="w-fit max-w-[82%] flex-shrink-0 whitespace-normal break-words rounded-2xl bg-bubble-user px-6 py-3 text-[15px] text-white shadow-sm">
-            {message.content}
+          <div className="w-fit max-w-[82%] flex-shrink-0">
+            {/* Image thumbnails */}
+            {message.images && message.images.length > 0 && (
+              <div className="mb-2 flex flex-wrap justify-end gap-2">
+                {message.images.map((src, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={src}
+                    alt={`Attached image ${i + 1}`}
+                    onClick={() => window.open(src, "_blank", "noreferrer")}
+                    className="h-24 w-24 cursor-pointer rounded-xl object-cover border border-white/20 shadow-sm transition hover:opacity-90"
+                  />
+                ))}
+              </div>
+            )}
+            {/* Text */}
+            {message.content && (
+              <div className="whitespace-normal break-words rounded-2xl bg-bubble-user px-6 py-3 text-[15px] text-white shadow-sm">
+                {message.content}
+              </div>
+            )}
           </div>
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm">
             <User className="h-5 w-5" />
@@ -154,34 +174,22 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
 function InlineCitation({
   citation,
   onOpen,
-  fallbackLabel,
 }: {
   citation?: Citation;
   onOpen: (citation: Citation) => void;
   fallbackLabel?: string;
 }) {
-  if (!citation) {
-    return (
-      <span className="mx-0.5 inline-flex align-super">
-        <span className="inline-flex items-center justify-center rounded-full border border-brand/20 bg-brand/10 px-2 py-1 text-[11px] font-semibold leading-none text-brand">
-          {fallbackLabel || "Source"}
-        </span>
-      </span>
-    );
-  }
+  if (!citation) return null;
 
   return (
-    <span
-      className="mx-0.5 inline-flex text-[11px] leading-none"
-      style={{ verticalAlign: "super" }}
+    <button
+      onClick={() => onOpen(citation)}
+      title={`${citation.title}, p.${citation.page_number}`}
+      style={{ fontSize: "0.72em", verticalAlign: "super", lineHeight: 1 }}
+      className="mx-px inline-flex items-center justify-center rounded bg-brand/10 px-1 py-px font-bold text-brand transition hover:bg-brand/20"
     >
-      <button
-        onClick={() => onOpen(citation)}
-        className="inline-flex items-center justify-center rounded-full border border-brand/20 bg-brand/10 px-2 py-1 font-semibold text-brand transition hover:border-brand/35 hover:bg-brand/15"
-      >
-        {`p.${citation.page_number}`}
-      </button>
-    </span>
+      {citation.index}
+    </button>
   );
 }
 

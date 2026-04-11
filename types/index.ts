@@ -54,6 +54,8 @@ export interface ChatMessage {
     userPrompt: string;
     chunks: RetrievedChunk[];
   };
+  /** Base64 data URLs attached by the user (max 3, persisted in localStorage) */
+  images?: string[];
   createdAt: number;
 }
 

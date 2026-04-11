@@ -1,10 +1,12 @@
 "use client";
-import { Paperclip, Mic, Send } from "lucide-react";
+import { Paperclip, Mic, Send, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { PRODUCT_LABELS, type Product } from "@/types";
+import { resizeImageFile, type AttachedImage } from "@/lib/images";
 
 const PRODUCTS: Product[] = ["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort"];
+const MAX_IMAGES = 3;
 
 export function ChatInput({
   onSubmit,
@@ -13,6 +15,8 @@ export function ChatInput({
   onProductChange,
   value,
   onValueChange,
+  images,
+  onImagesChange,
   floating = true,
 }: {
   onSubmit: (text: string) => void;
@@ -21,9 +25,12 @@ export function ChatInput({
   onProductChange: (p: Product[]) => void;
   value: string;
   onValueChange: (v: string) => void;
+  images: AttachedImage[];
+  onImagesChange: (imgs: AttachedImage[]) => void;
   floating?: boolean;
 }) {
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-resize when value changes externally (e.g. from example click)
   useEffect(() => {
@@ -32,10 +39,11 @@ export function ChatInput({
     taRef.current.style.height = `${Math.min(taRef.current.scrollHeight, 140)}px`;
   }, [value]);
 
+  const canSend = (value.trim().length > 0 || images.length > 0) && !disabled;
+
   function send() {
-    const trimmed = value.trim();
-    if (!trimmed || disabled) return;
-    onSubmit(trimmed);
+    if (!canSend) return;
+    onSubmit(value.trim());
     onValueChange("");
     if (taRef.current) taRef.current.style.height = "auto";
   }
@@ -55,6 +63,24 @@ export function ChatInput({
     }
   }
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+
+    const remaining = MAX_IMAGES - images.length;
+    const toProcess = files.slice(0, remaining);
+
+    const resized = await Promise.all(toProcess.map((f) => resizeImageFile(f)));
+    onImagesChange([...images, ...resized]);
+
+    // Reset the input so the same file can be re-selected if removed
+    e.target.value = "";
+  }
+
+  function removeImage(index: number) {
+    onImagesChange(images.filter((_, i) => i !== index));
+  }
+
   return (
     <div className={cn(
       "w-full max-w-3xl px-4",
@@ -63,6 +89,29 @@ export function ChatInput({
         : "relative mx-auto",
     )}>
       <div className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60 overflow-hidden">
+        {/* Image thumbnails */}
+        {images.length > 0 && (
+          <div className="flex gap-2 px-4 pt-3">
+            {images.map((img, i) => (
+              <div key={i} className="relative flex-shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.dataUrl}
+                  alt={`Attachment ${i + 1}`}
+                  className="h-16 w-16 rounded-lg object-cover border border-slate-200"
+                />
+                <button
+                  onClick={() => removeImage(i)}
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-700 text-white hover:bg-slate-900"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Text input row */}
         <div className="flex items-end gap-2 px-4 py-3">
           <textarea
@@ -81,10 +130,26 @@ export function ChatInput({
             disabled={disabled}
           />
           <div className="flex flex-shrink-0 items-center gap-1">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={disabled || images.length >= MAX_IMAGES}
+            />
             <button
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
-              aria-label="Attach file"
-              tabIndex={-1}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || images.length >= MAX_IMAGES}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg transition",
+                images.length >= MAX_IMAGES
+                  ? "cursor-not-allowed text-slate-200"
+                  : "text-slate-400 hover:bg-slate-100 hover:text-slate-600",
+              )}
+              aria-label="Attach image"
             >
               <Paperclip className="h-4 w-4" />
             </button>
@@ -97,7 +162,7 @@ export function ChatInput({
             </button>
             <button
               onClick={send}
-              disabled={disabled || !value.trim()}
+              disabled={!canSend}
               className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
               aria-label="Send"
             >

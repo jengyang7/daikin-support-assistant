@@ -17,6 +17,7 @@ import {
   updateMessage,
 } from "@/lib/chat-history";
 import { useDocumentUrls } from "./use-document-urls";
+import { type AttachedImage } from "@/lib/images";
 import type { ChatMessage, Citation, Conversation, Product } from "@/types";
 
 export function ChatWindow() {
@@ -24,6 +25,7 @@ export function ChatWindow() {
   const [streaming, setStreaming] = useState(false);
   const [debugMsgId, setDebugMsgId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
+  const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const allCitations = conv?.messages.flatMap((m) => m.citations ?? []) ?? [];
@@ -74,10 +76,14 @@ export function ChatWindow() {
   async function handleSend(text: string) {
     if (!conv || streaming) return;
 
+    const imagePayload = attachedImages.map(({ mimeType, data }) => ({ mimeType, data }));
+    const imageDataUrls = attachedImages.map(({ dataUrl }) => dataUrl);
+
     const userMsg: ChatMessage = {
       id: cryptoRandomId(),
       role: "user",
       content: text,
+      images: imageDataUrls.length > 0 ? imageDataUrls : undefined,
       createdAt: Date.now(),
     };
     const assistantMsg: ChatMessage = {
@@ -100,13 +106,19 @@ export function ChatWindow() {
     appendMessage(conv.id, assistantMsg);
     window.dispatchEvent(new Event("reiri:history-changed"));
 
+    setAttachedImages([]);
     setStreaming(true);
     try {
       const history = conv.messages.map((m) => ({ role: m.role, content: m.content }));
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question: text, history, products: conv.productFilter ?? [] }),
+        body: JSON.stringify({
+          question: text,
+          history,
+          products: conv.productFilter ?? [],
+          images: imagePayload.length > 0 ? imagePayload : undefined,
+        }),
       });
       if (!res.ok || !res.body) throw new Error(`Chat request failed: ${res.status}`);
 
@@ -215,6 +227,8 @@ export function ChatWindow() {
                 onProductChange={setProductFilter}
                 value={inputValue}
                 onValueChange={setInputValue}
+                images={attachedImages}
+                onImagesChange={setAttachedImages}
                 floating={false}
               />
             </div>
@@ -241,6 +255,8 @@ export function ChatWindow() {
               onProductChange={setProductFilter}
               value={inputValue}
               onValueChange={setInputValue}
+              images={attachedImages}
+              onImagesChange={setAttachedImages}
             />
           </>
         )}
