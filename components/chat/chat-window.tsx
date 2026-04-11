@@ -222,7 +222,7 @@ export function ChatWindow() {
         ) : (
           <>
             {/* Messages */}
-            <div ref={scrollerRef} className="scroll-thin flex-1 overflow-y-auto px-6 py-6 pb-56">
+            <div ref={scrollerRef} className="scroll-thin flex-1 overflow-y-auto px-6 py-6 pb-36">
               <div className="mx-auto max-w-3xl space-y-6">
                 {conv.messages.map((m) => (
                   <MessageBubble key={m.id} message={m} />
@@ -231,7 +231,7 @@ export function ChatWindow() {
             </div>
 
             {/* Gradient fade — masks chat content behind floating input */}
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-48 bg-chatbg" />
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-chatbg" />
 
             {/* Floating input */}
             <ChatInput

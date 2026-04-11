@@ -59,7 +59,7 @@ export function ChatInput({
     <div className={cn(
       "w-full max-w-3xl px-4",
       floating
-        ? "absolute bottom-6 left-1/2 -translate-x-1/2 pb-6"
+        ? "absolute bottom-2 left-1/2 -translate-x-1/2 pb-2"
         : "relative mx-auto",
     )}>
       <div className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60 overflow-hidden">
