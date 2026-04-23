@@ -5,6 +5,8 @@ export const DOC_TYPE_ICON_COLORS: Record<DocType, string> = {
   datasheet: "text-blue-500 bg-blue-50",
   installation: "text-amber-500 bg-amber-50",
   user_manual: "text-emerald-500 bg-emerald-50",
+  specification: "text-cyan-500 bg-cyan-50",
+  other: "text-slate-500 bg-slate-100",
 };
 
 export const DOC_TYPE_BADGE_COLORS: Record<DocType, string> = {
@@ -12,6 +14,8 @@ export const DOC_TYPE_BADGE_COLORS: Record<DocType, string> = {
   datasheet: "bg-blue-50 text-blue-600 border-blue-200",
   installation: "bg-amber-50 text-amber-600 border-amber-200",
   user_manual: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  specification: "bg-cyan-50 text-cyan-600 border-cyan-200",
+  other: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 export const DOC_TYPE_FILTER_STYLES: Record<
@@ -33,5 +37,13 @@ export const DOC_TYPE_FILTER_STYLES: Record<
   user_manual: {
     active: "bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-200",
     inactive: "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700",
+  },
+  specification: {
+    active: "bg-cyan-50 text-cyan-700 shadow-sm ring-1 ring-cyan-200",
+    inactive: "text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700",
+  },
+  other: {
+    active: "bg-slate-100 text-slate-700 shadow-sm ring-1 ring-slate-300",
+    inactive: "text-slate-500 hover:bg-slate-100 hover:text-slate-700",
   },
 };

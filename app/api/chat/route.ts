@@ -26,7 +26,7 @@ const BodySchema = z.object({
     .max(20)
     .default([]),
   products: z
-    .array(z.enum(["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort"]))
+    .array(z.enum(["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort", "marutto"]))
     .default([]),
   images: z
     .array(z.object({ mimeType: z.string(), data: z.string() }))

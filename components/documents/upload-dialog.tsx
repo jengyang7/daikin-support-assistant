@@ -16,6 +16,7 @@ const PRODUCT_OPTIONS: (Product | "")[] = [
   "reiri_office",
   "reiri_hotel",
   "reiri_resort",
+  "marutto",
 ];
 const DOC_TYPE_OPTIONS: (DocType | "")[] = [
   "",
@@ -23,6 +24,8 @@ const DOC_TYPE_OPTIONS: (DocType | "")[] = [
   "datasheet",
   "installation",
   "user_manual",
+  "specification",
+  "other",
 ];
 
 function detectProduct(filename: string): Product | "" {
@@ -38,6 +41,7 @@ function detectProduct(filename: string): Product | "" {
   if (f.includes("reiri home")) return "reiri_home";
   // generic reiri docs (e.g. "adaptor for reiri", "adapter box") apply to all products
   if (f.includes("reiri") || f.includes("adapter") || f.includes("adaptor")) return "reiri_all";
+  if (f.includes("marutto")) return "marutto";
   return "";
 }
 
@@ -47,6 +51,8 @@ function detectDocType(filename: string): DocType | "" {
   if (f.includes("datasheet") || f.includes("data_sheet") || f.includes("data sheet")) return "datasheet";
   if (f.includes("installation") || f.includes("install manual")) return "installation";
   if (f.includes("user_manual") || f.includes("user manual") || f.includes("usermanual")) return "user_manual";
+  if (f.includes("instruction manual") || f.includes("operation manual") || f.includes("test operation")) return "user_manual";
+  if (f.includes("specification") || f.includes("conformance") || f.includes("protocol")) return "specification";
   return "";
 }
 

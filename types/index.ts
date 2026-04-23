@@ -1,8 +1,8 @@
 // Shared types used by both server and client.
 
-export type Product = "reiri_home" | "reiri_office" | "reiri_hotel" | "reiri_resort" | "reiri_all";
+export type Product = "reiri_home" | "reiri_office" | "reiri_hotel" | "reiri_resort" | "reiri_all" | "marutto";
 
-export type DocType = "catalogue" | "datasheet" | "installation" | "user_manual";
+export type DocType = "catalogue" | "datasheet" | "installation" | "user_manual" | "specification" | "other";
 
 export interface DocumentRow {
   id: string;
@@ -74,6 +74,7 @@ export const PRODUCT_LABELS: Record<Product, string> = {
   reiri_hotel: "Reiri Hotel",
   reiri_resort: "Reiri Resort",
   reiri_all: "All Reiri Products",
+  marutto: "Marutto",
 };
 
 export const DOC_TYPE_LABELS: Record<DocType, string> = {
@@ -81,4 +82,6 @@ export const DOC_TYPE_LABELS: Record<DocType, string> = {
   datasheet: "Datasheet",
   installation: "Installation",
   user_manual: "User Manual",
+  specification: "Specification",
+  other: "Other",
 };

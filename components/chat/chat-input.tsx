@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { PRODUCT_LABELS, type Product } from "@/types";
 import { resizeImageFile, type AttachedImage } from "@/lib/images";
 
-const PRODUCTS: Product[] = ["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort"];
+const PRODUCTS: Product[] = ["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort", "marutto"];
 const MAX_IMAGES = 3;
 
 export function ChatInput({

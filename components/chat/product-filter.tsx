@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { PRODUCT_LABELS, type Product } from "@/types";
 
-const ORDER: Product[] = ["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort"];
+const ORDER: Product[] = ["reiri_home", "reiri_office", "reiri_hotel", "reiri_resort", "marutto"];
 
 export function ProductFilter({
   value,

@@ -19,6 +19,7 @@ const PRODUCT_TABS: ("all" | Product)[] = [
   "reiri_home",
   "reiri_hotel",
   "reiri_resort",
+  "marutto",
 ];
 
 const DOC_TYPE_OPTIONS: ("all" | DocType)[] = [
@@ -27,6 +28,8 @@ const DOC_TYPE_OPTIONS: ("all" | DocType)[] = [
   "datasheet",
   "installation",
   "user_manual",
+  "specification",
+  "other",
 ];
 
 const DOC_TYPE_ORDER: Record<string, number> = {
@@ -34,6 +37,8 @@ const DOC_TYPE_ORDER: Record<string, number> = {
   datasheet: 1,
   installation: 2,
   user_manual: 3,
+  specification: 4,
+  other: 5,
 };
 
 const FAVS_KEY = "daikin_favourite_doc_ids";

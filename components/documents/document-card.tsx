@@ -1,5 +1,5 @@
 "use client";
-import { FileText, Wrench, BookOpen, LayoutGrid, Trash2, ExternalLink, Star } from "lucide-react";
+import { FileText, Wrench, BookOpen, LayoutGrid, Trash2, ExternalLink, Star, ClipboardList, FolderOpen } from "lucide-react";
 import { cn, formatBytes } from "@/lib/utils";
 import {
   DOC_TYPE_LABELS,
@@ -19,6 +19,8 @@ const DOC_TYPE_ICONS: Record<DocType, React.ElementType> = {
   datasheet: FileText,
   installation: Wrench,
   user_manual: BookOpen,
+  specification: ClipboardList,
+  other: FolderOpen,
 };
 
 export function DocumentCard({

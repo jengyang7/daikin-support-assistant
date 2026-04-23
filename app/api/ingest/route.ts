@@ -11,12 +11,15 @@ const VALID_PRODUCTS = new Set<Product>([
   "reiri_hotel",
   "reiri_resort",
   "reiri_all",
+  "marutto",
 ]);
 const VALID_DOC_TYPES = new Set<DocType>([
   "catalogue",
   "datasheet",
   "installation",
   "user_manual",
+  "specification",
+  "other",
 ]);
 
 /**

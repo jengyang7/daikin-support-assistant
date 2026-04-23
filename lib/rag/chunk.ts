@@ -26,6 +26,7 @@ const PRODUCT_LABELS: Record<Product, string> = {
   reiri_hotel: "Reiri Hotel",
   reiri_resort: "Reiri Resort",
   reiri_all: "All Reiri Products",
+  marutto: "Marutto",
 };
 
 const DOC_TYPE_LABELS: Record<DocType, string> = {
@@ -33,6 +34,8 @@ const DOC_TYPE_LABELS: Record<DocType, string> = {
   datasheet: "Datasheet",
   installation: "Installation Manual",
   user_manual: "User Manual",
+  specification: "Specification",
+  other: "Other",
 };
 
 /**
