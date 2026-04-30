@@ -27,6 +27,8 @@ export function ChatWindow() {
   const [inputValue, setInputValue] = useState("");
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLDivElement>(null);
+  const [composerHeight, setComposerHeight] = useState(0);
 
   const allCitations = conv?.messages.flatMap((m) => m.citations ?? []) ?? [];
   const urlMap = useDocumentUrls(allCitations);
@@ -53,6 +55,20 @@ export function ChatWindow() {
     if (!scrollerRef.current) return;
     scrollerRef.current.scrollTop = scrollerRef.current.scrollHeight;
   }, [conv?.messages.length, conv?.messages[conv.messages.length - 1]?.content]);
+
+  useEffect(() => {
+    const composer = composerRef.current;
+    if (!composer) return;
+
+    const updateComposerHeight = () => {
+      setComposerHeight(Math.ceil(composer.getBoundingClientRect().height));
+    };
+
+    updateComposerHeight();
+    const observer = new ResizeObserver(updateComposerHeight);
+    observer.observe(composer);
+    return () => observer.disconnect();
+  }, [conv?.messages.length]);
 
   function setProductFilter(next: Product[]) {
     if (!conv) return;
@@ -203,6 +219,8 @@ export function ChatWindow() {
   }
 
   const isEmpty = conv.messages.length === 0;
+  const bottomInset = composerHeight > 0 ? composerHeight + 48 : 180;
+  const inputMaskHeight = composerHeight > 0 ? composerHeight + 16 : 148;
 
   return (
     <SourceContext.Provider value={{ openPdf, openDebug, urlMap }}>
@@ -236,7 +254,11 @@ export function ChatWindow() {
         ) : (
           <>
             {/* Messages */}
-            <div ref={scrollerRef} className="scroll-thin flex-1 overflow-y-auto px-3 py-4 pb-36 sm:px-6 sm:py-6">
+            <div
+              ref={scrollerRef}
+              className="scroll-thin flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6"
+              style={{ paddingBottom: bottomInset }}
+            >
               <div className="mx-auto max-w-3xl space-y-6">
                 {conv.messages.map((m) => (
                   <MessageBubble key={m.id} message={m} />
@@ -245,7 +267,10 @@ export function ChatWindow() {
             </div>
 
             {/* Gradient fade — masks chat content behind floating input */}
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-chatbg" />
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 right-0 bg-chatbg"
+              style={{ height: inputMaskHeight }}
+            />
 
             {/* Floating input */}
             <ChatInput
@@ -257,6 +282,7 @@ export function ChatWindow() {
               onValueChange={setInputValue}
               images={attachedImages}
               onImagesChange={setAttachedImages}
+              containerRef={composerRef}
             />
           </>
         )}

@@ -1,6 +1,6 @@
 "use client";
 import { Paperclip, Mic, Send, X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type Ref } from "react";
 import { cn } from "@/lib/utils";
 import { PRODUCT_LABELS, type Product } from "@/types";
 import { resizeImageFile, type AttachedImage } from "@/lib/images";
@@ -18,6 +18,7 @@ export function ChatInput({
   images,
   onImagesChange,
   floating = true,
+  containerRef,
 }: {
   onSubmit: (text: string) => void;
   disabled?: boolean;
@@ -28,6 +29,7 @@ export function ChatInput({
   images: AttachedImage[];
   onImagesChange: (imgs: AttachedImage[]) => void;
   floating?: boolean;
+  containerRef?: Ref<HTMLDivElement>;
 }) {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,7 +89,7 @@ export function ChatInput({
       floating
         ? "absolute bottom-2 left-1/2 -translate-x-1/2 pb-2"
         : "relative mx-auto",
-    )}>
+    )} ref={containerRef}>
       <div className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60 overflow-hidden">
         {/* Image thumbnails */}
         {images.length > 0 && (
